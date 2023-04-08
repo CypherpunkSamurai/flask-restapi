@@ -1,0 +1,193 @@
+# 5.4.2023 - Init Project
+Init project and install packages using poetry
+
+# 5.4.2023 - Create Structure
+Create the project structure
+Reference: https://drive.google.com/file/d/13rd9WznfNqn6NvL5dZzFHSkwOj7CAAzp/view
+
+# 5.4.2023 - Write Flask Unicorn Compatible Base
+Use flask and use modular approach to provide non Unicorn run.
+
+-- college work --
+
+# 7.4.2023 - Write SQL-alchemy base
+Use flask_sqlalchemy to write base.
+Idea is to use the official flask website source code as a resource:
+https://github.com/pallets/flask-website/blob/master/flask_website/database.py
+
+# 7.4.2023 - Register a new Postgres database
+using https://api.elephantsql.com/
+
+connection url:
+postgres://khgsisxx:gLSTrqqAajQWJTmTt3yomiQC5qeoQA4_@trumpet.db.elephantsql.com/khgsisxx
+host: trumpet.db.elephantsql.com
+username: khgsisxx
+password: gLSTrqqAajQWJTmTt3yomiQC5qeoQA4_
+
+browser console: https://api.elephantsql.com/console/e104f656-59bc-45e0-be0c-0d038d7c14aa/browser?
+
+# 7.4.2023 - Learn about geographic data referencing in databases
+point datatypes are (x,y) co-ordinates, and we can use them like geographic data, as (lan, lon) are float tuples.
+we will use geoalchemy2 module to reference this data easily.
+
+problem observation: earth is a sphere thus finding distance from paris to new york would
+give us a straight line. which would require a metro from paris to new york in a straight line
+which is not possible. cartesian co-ordinate system would not provide accurate answers.
+solution concept:
+
+PostGIS DB has a nice documentation on this: http://postgis.net/workshops/postgis-intro/geography.html
+Spacial Reference ID (SRID) is 4326 for geographic data.
+
+```
+from geoalchemy2.functions import ST_DWithin
+
+point = 'POINT({} {})'.format(lng, lat)
+session.query(MyTable).filter(ST_DWithin(MyTable.location, point, radius)).all()
+```
+also later found impressive post on how to use geoalchemy2
+https://stackoverflow.com/questions/23981056/geoalchemy-st-dwithin-implementation
+
+# 7.4.2023 - Stuck with SQL circular problem
+SQLalchemy Circular imports problem. Need to think of the app architecture again.
+Common problem.
+
+# 7.4.2023 - Not getting the app registered even after init_app
+cannot register the app even after running db.init_app(app)
+error:
+The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app'
+
+# 7.4.2023 - The problem solution was again to use tree like imports
+Like all python projects I forgot to cleanse the imports. Changed the imports to Tree imports, or people call it MVC.
+
+# 8.4.2023 - No ST_DWithin function
+Free PostgreSQL wont provide extensions to PostGIS. We need to find a alternative.
+
+# 8.4.22023 - Google Maps uses Haversine, we use it
+According to
+https://ourcodeworld.com/articles/read/1021/how-to-calculate-the-distance-between-2-markers-coordinates-in-google-maps-with-javascript
+https://cloud.google.com/blog/products/maps-platform/how-calculate-distances-map-maps-javascript-api
+https://gis.stackexchange.com/questions/82669/what-formula-is-used-for-distance-between-2-points-in-google-maps
+https://stackoverflow.com/questions/38248046/is-the-haversine-formula-or-the-vincentys-formula-better-for-calculating-distan
+https://en.wikipedia.org/wiki/Haversine_formula
+
+# 8.4.2023 - Write Haversine to a PostgreSQL function
+We need to write a function to calculate
+I need to rewrite the following and get a working function
+https://www.educative.io/answers/how-to-calculate-distance-using-the-haversine-formula
+https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
+https://stackoverflow.com/questions/61135374/postgresql-calculate-distance-between-two-points-without-using-postgis
+https://www.mail-archive.com/pgsql-general@postgresql.org/msg136564.html
+https://devpress.csdn.net/postgresql/6317d23f26059229d1c85532.html
+https://www.alibabacloud.com/help/en/analyticdb-for-postgresql/latest/spatio-temporal-statistics-st-nearestapproachpoint
+https://gist.github.com/carlzulauf/1724506
+
+consider haversine formula:
+    haversine ("theta") = "sin"^2("theta" / 2)
+
+so haversine for formula,
+
+    where "theta" = "distance" / "radius"
+
+    "radius" of earth from google search is 6371 km (*1000 for metres)
+
+    so,
+        "distance" / "radius" is calculated for normalization here. To get a ratio of the distance in
+        respective to the earths radius. Because the earth is treated as a sphere we take the
+        calculation of the angle subtended by the arc on the centre of the earth. usually in circle
+        geometry in maths class 9-10 we are taught about circles. here we use a sphere.
+
+    so,
+    haversine ("distance" / "radius") = haversine( "lat2" - "lat1" ) + cos( lat1 ) * cos ( lat2 ) * haversine(lon2 - lon1)
+
+        here,
+        lat2 - lat2 can be said as "delta_lat"
+        lon2 - lon2 can be said as "delta_lon"
+
+    thus,
+
+
+    we need to find "a" and "c". "a" is half chord length, "c" is angular distance (in radians)
+
+    ()
+
+    a = sin^2("delta_lat"/2) + cos(lat1).cos(lat2).sin^2("delta_lon"/2)
+
+    c = 2.asin(root(a))
+    c = 2.atan^2(root(a), root(1-a))
+
+        (atan is inverse tangent function in python, which is atan( a, z) = atan(a / z)
+
+    asin(root(a)) is computationally expensive, thus we will use atan.
+
+    then to find the distance we need to:
+        d = R.c
+
+        where R is the radius of earth.
+
+    ok. writing a postgres function for this would be clear.
+
+# 8.4.2023 - Writing a PostgreSQL function
+The whole calculations resulted:
+```sql
+-- delete function
+DROP FUNCTION IF EXISTS public.WithinRadius;
+
+-- write the function again
+CREATE OR REPLACE FUNCTION public.WithinRadius (
+  lat1 double precision,
+  lon1 double precision,
+  lat2 double precision,
+	lon2 double precision,
+	radius_km double precision ) RETURNS BOOLEAN
+-- important to define the language
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+	-- Here we write the variables in calculation
+  delta_lat double precision; -- distance from lat2 to lat1
+  delta_lon double precision; -- distrance from lon
+  a double precision; -- chrod length
+  c double precision; -- angular distance
+
+  -- here we multiple 2 beforehand to cut costs.
+  -- radius_e double precision := 6371; -- radius of the earth (in km)
+  twice_radius_e double precision := 12742; -- 6371*2;
+
+  distance double precision; -- required distance
+
+BEGIN
+  delta_lat := radians( lat2 - lat1 ); -- we will use radians() function from postgres
+  delta_lon := radians( lon2 - lon1 );
+
+	-- we use the haversine formula here
+	a :=	sin(delta_lat / 2)^2
+  			+ cos(radians(lat1))
+        * cos(radians(lat2))
+        * sin(delta_lon /2)^2;
+
+  -- we multiply (2*radius_e) directly to cut multiplication cost
+  c := asin(sqrt(a));
+
+  distance := twice_radius_e * c;
+
+  -- check if distance is less than required distance. then return true
+  RETURN distance <= radius_km;
+END
+$$;
+
+-- https://www.travelmath.com/distance/from/New+York,+NY/to/Washington,+DC
+-- Checking this
+SELECT WithinRadius(
+  40.7128,
+  74.0060,
+  38.9072,
+  77.0369,
+  328
+);
+```
+
+Perfect! 2 hours not wasted.
+
+# 8.4.2023 - Rewriting geoalchemy code with custom function
+

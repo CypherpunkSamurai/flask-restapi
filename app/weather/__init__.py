@@ -1,0 +1,3 @@
+"""
+A weather module
+"""

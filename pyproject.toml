@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "python"
+version = "0.1.0"
+description = "A Flask REST API for Twitter like social with geolocation"
+authors = ["CypherpunkSamurai <CypherpunkSamurai@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.2.3"
+flask-restful = "^0.3.9"
+flask-sqlalchemy = "^3.0.3"
+# 0.13.0 has moved functions to _functions.
+python-dotenv = "^1.0.0"
+geoalchemy2 = "0.12.5"
+requests = "^2.28.2"
+psycopg2-binary = "^2.9.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
