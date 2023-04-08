@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 
 # app config
 IS_DEBUG = os.getenv("DEBUG", 0)

@@ -3,11 +3,8 @@ A posts rest api module for ../app (Twitter)
 
 @author: Rakesh Chowdhury (github/CypherpunkSamurai)
 """
-# sql
-from app.utils import logger
-from sqlalchemy import select, func
 # model
-from app.posts.models import Post, db
+from app.posts.models import Post, add_post, find_posts
 from typing import Tuple, List
 
 # nearby in km
@@ -24,10 +21,7 @@ def new_post(content, location: Tuple[float, float]) -> Post:
     """
 
     # create new post
-    post = Post(content, location)
-    db.session.add(post)
-    db.session.commit()
-    return post
+    return add_post(content, location)
 
 
 def get_post_nearby(location: Tuple[float, float],
@@ -45,27 +39,5 @@ def get_post_nearby(location: Tuple[float, float],
     :return: List of Posts
     """
 
-    results: List[Post] = []
-
-    # format to POINT data type
-    pin = f"POINT({location[0]} {location[1]})"
-    radius_m = radius_km * 1000
-
-    # write query to find posts with geographical distance within the radius
-    # with pagination using `per_page` number of rows
-    # at `page * per_page` offset
-    query = select(Post).where(
-        func.ST_DWithin(Post.location, pin, radius_m)
-    ).limit(per_page).offset(page * per_page)
-
-    # run query
-    try:
-        query_results = db.session.execute(query)
-        for row in query_results:
-            results.append(row)
-    except Exception as e:
-        logger.exception(e)
-        return []
-
     # returns the results
-    return results
+    return find_posts(location, radius_km, page, per_page)

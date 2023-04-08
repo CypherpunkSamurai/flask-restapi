@@ -4,13 +4,15 @@ Flask REST API for Twitter Clone
 This is the main flask app.
 """
 import os
+from dotenv import load_dotenv
 # flask
 from flask import Flask
+
 # routes
 from posts import routs as post_routes
-from posts.models import db
 from weather import routs as weather_routes
-from dotenv import load_dotenv
+from posts.models import db
+
 # init logger
 import utils
 
@@ -35,21 +37,18 @@ def create_app():
     """
     app = Flask(__name__)
 
-    # SQL Config
-    app.config["SQLALCHEMY_DATABASE_URI"] = utils.POSTGRESQL_URI
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = utils.IS_DEBUG
-
-    db.init_app(app=app)
-    with app.app_context():
-        print(db.session.info)
-        # clean start
-        if CLEAN_START:
-            db.create_all()
-
     # Blueprints
     app.register_blueprint(post_routes.b_new_post)
     app.register_blueprint(post_routes.b_get_post)
     app.register_blueprint(weather_routes.b_get_weather)
+
+    # SQL Config
+    app.config["SQLALCHEMY_DATABASE_URI"] = utils.POSTGRESQL_URI
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = utils.IS_DEBUG
+
+    # Context
+    with app.app_context():
+        db.init_app(app)
     return app
 
 

@@ -190,4 +190,9 @@ SELECT WithinRadius(
 Perfect! 2 hours not wasted.
 
 # 8.4.2023 - Rewriting geoalchemy code with custom function
+just a self reminder to check pg_types before using geometry in postgres
+```
+select * from pg_type where typcategory = 'G'
+```
 
+we need to use a custom data type to reference POINT

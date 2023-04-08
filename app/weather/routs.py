@@ -13,7 +13,7 @@ b_get_weather = Blueprint('get_weather', ROUTE_NAMESPACE)
 
 
 # Methods
-@b_get_weather.route("/", methods=['GET'])
+@b_get_weather.route("/weather/get", methods=['GET'])
 def get_weather():
     """
     Get weather from given location (lat, lon). Return API response
