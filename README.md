@@ -10,8 +10,8 @@ A Twitter Backend Clone using Python3 Flask.
 
 A demo rest api endpoint is listed below. You can also Consider using the buttons below for easy deployment and testing the demo endpoint.
 
-- **Demo HTTP Endpoint:**
-
+- **Demo HTTP Endpoint:**  
+  `https://pythoninternship.rakeshs.eu.org/` - [\[visit\]](https://pythoninternship.rakeshs.eu.org/)
 
 - **Test the Demo API:**  
   [![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Python%20SDE%20Internship%202023&uri=https%3A%2F%2Fgithub.com%2FCypherpunkSamurai%2Fflask-restapi%2Fblob%2Fmaster%2Fdocs%2Frest_api_definition.insomnia.json)
