@@ -1,8 +1,4 @@
-"""
-A posts rest api module for ../app (Twitter)
-
-@author: Rakesh Chowdhury (github/CypherpunkSamurai)
-"""
+# file: ./app/posts/controller.py
 # model
 from posts.models import Post, add_post, find_posts
 from typing import Tuple, List
@@ -21,7 +17,10 @@ def new_post_controller(content, location: Tuple[float, float]) -> Post:
     """
 
     # create new post
-    return add_post(content, location).tojson()
+    post = add_post(content, location)
+
+    # return serialized json
+    return post.tojson()
 
 
 def get_post_nearby(location: Tuple[float, float],
@@ -39,6 +38,8 @@ def get_post_nearby(location: Tuple[float, float],
     :return: List of Posts
     """
 
-    # returns the results
+    # get posts
     posts = find_posts(location, radius_km, page, per_page)
+
+    # serialize posts
     return [post.tojson() for post in posts]

@@ -17,7 +17,8 @@ db = SQLAlchemy()
 
 class PointType(UserDefinedType, ABC):
     """
-    Postgre POINT type
+    A Simple Custom PostgreSQL POINT type for SQLalchemy
+
     """
     cache_ok = True
 
@@ -119,7 +120,7 @@ def find_posts(
 
     # we use our custom defined "WithinRadius" function here
     # sqlalchemy creates the sql query for the function automatically writtem func.(name)
-    # with pagination using `per_page` number of rows
+    # with pagination using `per_page` number of rows we limit the rows returned
     # at `page * per_page` offset
     query = select(Post).where(
         func.WithinRadius(Post.location, pin, radius_km)

@@ -19,10 +19,10 @@ def get_post():
     :return:
     """
 
-    # read params
+    # read query params
     args = request.args
 
-    # required params
+    # check required params
     lat = args.get("lat", type=float, default=None)
     lon = args.get("lon", type=float, default=None)
     distance = args.get("distance", type=int, default=5)
@@ -33,7 +33,7 @@ def get_post():
     per_page = args.get('per_page', default=10, type=int)
     page = args.get('page', default=1, type=int)
 
-    # get posts
+    # get posts from db
     try:
         logger.info(f"get_post_nearby ->")
         posts = get_post_nearby(
@@ -42,6 +42,8 @@ def get_post():
             per_page,
             distance
         )
+
+    # in case of exception we return error message
     except Exception as e:
         logger.exception(e)
         return {"result": "error", "message": f"there was a error querying posts. {e}"}
@@ -56,8 +58,9 @@ def new_post():
 
     :return: New Post ID
     """
+
     try:
-        # read json
+        # request json
         data = request.get_json()
 
         # check missing json keys
@@ -73,6 +76,8 @@ def new_post():
             (lat, lon)
         )
         return {"result": "success", "message": "post created", "posts": [post]}
+
+    # on error we return the error message
     except Exception as e:
         logger.exception(e)
         return {"result": "error", "message": f"error creating post. {e}"}

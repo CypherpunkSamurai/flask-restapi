@@ -1,8 +1,4 @@
-"""
-A weather rest api module for ../app (Twitter)
-
-@author: Rakesh Chowdhury (github/CypherpunkSamurai)
-"""
+# file: ./app/weather/routs.py
 from flask import Blueprint, request
 from weather.controller import get_weather_at
 
