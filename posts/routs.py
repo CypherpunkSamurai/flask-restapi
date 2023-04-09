@@ -1,7 +1,8 @@
 # file: ./app/posts/route.py
-from app.utils import logger
+from utils import logger
 from flask import Blueprint, request
-from app.posts.controller import get_post_nearby, new_post
+
+from posts.controller import get_post_nearby, new_post_controller
 
 # namespace
 ROUTE_NAMESPACE = 'posts'
@@ -55,20 +56,23 @@ def new_post():
 
     :return: New Post ID
     """
+    try:
+        # read json
+        data = request.get_json()
 
-    # read json
-    data = request.get_json()
+        # check missing json keys
+        if not any(key in data for key in ["content", "lat", "lon"]):
+            return {"result": "error", "message": "content, lat, and lon are required to create new post"}
 
-    content = data.get("content")
-    lat = data.get("lat", type=float)
-    lon = data.get("lon", type=float)
+        content = data["content"]
+        lat = data["lat"]
+        lon = data["lon"]
 
-    # check missing data
-    if not content or not lat or not lon:
-        return {"result": "error", "message": "content, lat, and lon are required to create new post"}
-
-    post = new_post(
-        content,
-        (lat, lon)
-    )
-    return {"result": "success", "message": "post created", "posts": [post]}
+        post = new_post_controller(
+            content,
+            (lat, lon)
+        )
+        return {"result": "success", "message": "post created", "posts": [post]}
+    except Exception as e:
+        logger.exception(e)
+        return {"result": "error", "message": f"error creating post. {e}"}

@@ -1,5 +1,5 @@
 # file: ./app/weather/controller.py
-from app.weather.models import openweathermap_query
+from weather.models import openweathermap_query
 
 
 def get_weather_at(lat: float, lon: float):

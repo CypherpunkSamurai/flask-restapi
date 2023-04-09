@@ -4,7 +4,6 @@ Flask REST API for Twitter Clone
 This is the main flask app.
 """
 import os
-from dotenv import load_dotenv
 # flask
 from flask import Flask
 
@@ -16,12 +15,8 @@ from posts.models import db
 # init logger
 import utils
 
-# Environment Variables
-load_dotenv()
-
 # Run Config
-IS_DEBUG = os.getenv("DEBUG", 1)
-CLEAN_START = os.getenv("CLEAN_START", False)
+
 
 # Server Config
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -48,7 +43,14 @@ def create_app():
 
     # Context
     with app.app_context():
+        # bind context
         db.init_app(app)
+
+        # clean the database
+        if utils.CLEAN_START:
+            db.create_all()
+            utils.add_function(db)
+
     return app
 
 
@@ -60,4 +62,4 @@ if __name__ == '__main__':
     # run the app
     if flask_app:
         utils.logger.info("[app] running app...")
-        flask_app.run(host=HOST, port=PORT, debug=bool(IS_DEBUG))
+        flask_app.run(host=HOST, port=PORT, debug=bool(utils.   IS_DEBUG))

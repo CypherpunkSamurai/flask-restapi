@@ -4,7 +4,7 @@ A weather rest api module for ../app (Twitter)
 @author: Rakesh Chowdhury (github/CypherpunkSamurai)
 """
 from flask import Blueprint, request
-from app.weather.controller import get_weather_at
+from weather.controller import get_weather_at
 
 # namespace
 ROUTE_NAMESPACE = 'weather'

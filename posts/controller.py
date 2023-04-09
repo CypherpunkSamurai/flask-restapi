@@ -4,14 +4,14 @@ A posts rest api module for ../app (Twitter)
 @author: Rakesh Chowdhury (github/CypherpunkSamurai)
 """
 # model
-from app.posts.models import Post, add_post, find_posts
+from posts.models import Post, add_post, find_posts
 from typing import Tuple, List
 
 # nearby in km
 RADIUS: int = 5
 
 
-def new_post(content, location: Tuple[float, float]) -> Post:
+def new_post_controller(content, location: Tuple[float, float]) -> Post:
     """
     Create a new post object
 
@@ -21,7 +21,7 @@ def new_post(content, location: Tuple[float, float]) -> Post:
     """
 
     # create new post
-    return add_post(content, location)
+    return add_post(content, location).tojson()
 
 
 def get_post_nearby(location: Tuple[float, float],
@@ -40,4 +40,5 @@ def get_post_nearby(location: Tuple[float, float],
     """
 
     # returns the results
-    return find_posts(location, radius_km, page, per_page)
+    posts = find_posts(location, radius_km, page, per_page)
+    return [post.tojson() for post in posts]
